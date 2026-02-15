@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { API_ENDPOINTS } from '@/lib/api';
 import Step1OrderDetails from '@/components/order/Step1OrderDetails';
@@ -33,7 +33,7 @@ const pricingConfig = {
   },
 };
 
-export default function OrderPage() {
+function OrderPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -63,6 +63,7 @@ export default function OrderPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [priceBreakdown, setPriceBreakdown] = useState({ subtotal: 0, cutUpFee: 0, deliveryFee: 0, total: 0 });
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [deliveryDistance, setDeliveryDistance] = useState(0);
 
   // Handle pre-selected product from Gallery
   useEffect(() => {
@@ -119,6 +120,12 @@ export default function OrderPage() {
     return pricingConfig.deliveryZones.zone4.fee;
   }, []);
 
+  // Handle delivery fee updates from Step2CustomerInfo
+  const handleDeliveryFeeChange = useCallback((fee: number, distance?: number) => {
+    setPriceBreakdown(prev => ({ ...prev, deliveryFee: fee }));
+    if (distance !== undefined) setDeliveryDistance(distance);
+  }, []);
+
   // Calculate pricing
   useEffect(() => {
     const quantity = parseInt(formData.quantity) || 0;
@@ -131,9 +138,10 @@ export default function OrderPage() {
     if (isChicken && formData.cutUp === 'yes') {
       cutUpFee = quantity * getCutUpFee(formData.cutPieces);
     }
-    const deliveryFee = formData.orderType === 'delivery' ? 0 : 0; // Simplified for now
-    setPriceBreakdown({ subtotal, cutUpFee, deliveryFee, total: subtotal + cutUpFee + deliveryFee });
-  }, [formData.quantity, formData.productType, formData.weightRange, formData.unit, formData.cutUp, formData.cutPieces, formData.orderType]);
+    // Delivery fee is now handled by the delivery calculation component
+    const total = subtotal + cutUpFee + priceBreakdown.deliveryFee;
+    setPriceBreakdown(prev => ({ ...prev, subtotal, cutUpFee, total }));
+  }, [formData.quantity, formData.productType, formData.weightRange, formData.unit, formData.cutUp, formData.cutPieces, priceBreakdown.deliveryFee]);
 
   const validateStep = (step: number) => {
     switch (step) {
@@ -163,7 +171,14 @@ export default function OrderPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const orderData = { ...formData, total: priceBreakdown.total, subtotal: priceBreakdown.subtotal, cutUpFee: priceBreakdown.cutUpFee, deliveryFee: priceBreakdown.deliveryFee, distance: 0 };
+      const orderData = {
+        ...formData,
+        total: priceBreakdown.total,
+        subtotal: priceBreakdown.subtotal,
+        cutUpFee: priceBreakdown.cutUpFee,
+        deliveryFee: priceBreakdown.deliveryFee,
+        distance: deliveryDistance
+      };
       localStorage.setItem('pendingOrder', JSON.stringify(orderData));
       showToast('Order confirmed! Redirecting to payment...', 'success');
       setTimeout(() => router.push('/payment'), 1500);
@@ -218,7 +233,14 @@ export default function OrderPage() {
       {/* Form */}
       <form onSubmit={handleSubmit}>
         {currentStep === 1 && <Step1OrderDetails formData={formData} pricingConfig={pricingConfig} onChange={handleChange} onProductChange={handleProductChange} />}
-        {currentStep === 2 && <Step2CustomerInfo formData={formData} onChange={handleChange} />}
+        {currentStep === 2 && (
+          <Step2CustomerInfo
+            formData={formData}
+            onChange={handleChange}
+            orderTotal={priceBreakdown.subtotal + priceBreakdown.cutUpFee}
+            onDeliveryFeeChange={handleDeliveryFeeChange}
+          />
+        )}
         {currentStep === 3 && <Step3Preview formData={formData} priceBreakdown={priceBreakdown} pricingConfig={pricingConfig} onEditOrder={() => setCurrentStep(1)} onEditCustomer={() => setCurrentStep(2)} />}
 
         {/* Navigation */}
@@ -238,5 +260,13 @@ export default function OrderPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function OrderPage() {
+  return (
+    <Suspense fallback={<div className="max-w-2xl mx-auto my-8 px-4 text-center py-12">Loading...</div>}>
+      <OrderPageContent />
+    </Suspense>
   );
 }
