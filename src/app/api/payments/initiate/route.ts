@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
         currency: "XAF",
         description: `Payment for order ${orderData.orderId} from ${cleanPhone}`,
         external_reference: paymentRef,
-        redirect_url: process.env.NEXT_FRONTEND_URL,
+        redirect_url: `${process.env.NEXT_FRONTEND_URL}/order-success`,
       }),
       redirect: "follow",
     });

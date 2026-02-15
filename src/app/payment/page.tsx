@@ -72,6 +72,7 @@ export default function PaymentPage() {
         body: JSON.stringify({ orderData: order, amount: order!.total, paymentMethod, phoneNumber }),
       });
       const initData = await initRes.json();
+      console.log("Data returned from fetching payment API from my backend: ", initData);
 
       if (!initData.success) {
         setError(initData.message || 'Payment initiation failed');
@@ -79,8 +80,17 @@ export default function PaymentPage() {
         return;
       }
 
-      showToast('Payment initiated! Please check your phone and confirm the payment.', 'success');
+      const { paymentRedirect } = initData;
+      if(paymentRedirect.detail === "Invalid token") {
+        showToast('Payment initiation failed. Invalid token provided.', 'error');
+        setPaymentStatus('failed');
+        return;
+      }
+
+      showToast('Redirecting you to payment portal...', 'success');
       setPaymentStatus('pending');
+
+      router.push(paymentRedirect.link);
 
       // Poll for status
       const paymentRef = initData.paymentRef;
