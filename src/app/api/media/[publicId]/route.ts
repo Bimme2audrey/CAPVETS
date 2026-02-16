@@ -31,6 +31,7 @@ export async function DELETE(
 
     // Delete from Cloudinary
     await cloudinary.uploader.destroy(publicId);
+    await cloudinary.uploader.destroy(`capvets/${publicId}`);
 
     // Delete from database
     await Media.findOneAndDelete({ public_id: `capvets/${publicId}` });
