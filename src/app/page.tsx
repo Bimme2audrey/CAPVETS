@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_ENDPOINTS } from '@/lib/api';
+import {Egg, Fish, Wheat, Sprout, Snail,PiggyBank} from 'lucide-react';
 
 const CHICKEN_CATEGORIES: Record<string, { weight: string; price: number; label: string; color: string }> = {
   '1.5-1.6kg': { weight: '1.5-1.6kg', price: 3000, label: 'Small (1.5-1.6kg)', color: '#10b981' },
@@ -203,109 +204,162 @@ export default function Gallery() {
   };
 
   return (
-    <div className="max-w-[1200px] mx-auto my-8 px-4">
-      {/* Header */}
-      <div className="text-center mb-8 px-4">
-        <img
-          src="/logo.png"
-          alt="CapVets Logo"
-          className="w-20 h-auto mb-6 mx-auto animate-[fadeInDown_0.8s_ease-out]"
-        />
-        <h1 className="text-4xl font-bold text-gray-800 mb-2 animate-[fadeInUp_0.8s_ease-out]">
-          Our Products
-        </h1>
-        <p className="text-gray-500 text-lg animate-[fadeInUp_0.8s_ease-out_0.2s] opacity-0 [animation-fill-mode:forwards]">
-          Take a look at our quality products before placing your order
-        </p>
+    <div className="min-h-screen relative">
+      {/* Background Product Icons - Desktop Only */}
+      <div className="hidden lg:block fixed inset-0 pointer-events-none overflow-hidden">
+        {/* Egg Icons */}
+        <div className="absolute top-20 left-10 text-orange-300 opacity-40 animate-[float_6s_ease-in-out_infinite" style={{ animationDelay: '0s' }}>
+          <Egg size={48} />
+        </div>
+        <div className="absolute top-40 right-20 text-orange-300 opacity-35 animate-[float_6s_ease-in-out_infinite" style={{ animationDelay: '1s' }}>
+          <Egg size={40} />
+        </div>
 
-        {/* Filters */}
-        <div className="flex justify-center gap-3 mt-8 animate-[fadeInUp_0.8s_ease-out_0.4s] opacity-0 [animation-fill-mode:forwards] flex-wrap">
-          {['all', 'images', 'videos'].map((filter) => (
-            <button
-              key={filter}
-              className={`px-4 py-2 border-2 border-yellow-400 rounded-full font-medium text-sm min-w-[80px] transition-all duration-300 cursor-pointer
-                ${activeFilter === filter
-                  ? 'bg-yellow-400 text-gray-800 shadow-sm'
-                  : 'bg-transparent text-gray-800 hover:bg-yellow-400 hover:text-gray-800'
-                }`}
-              onClick={() => setActiveFilter(filter)}
-            >
-              {filter === 'all' ? 'All' : filter === 'images' ? 'Photos' : 'Videos'}
-            </button>
-          ))}
+        {/* Fish Icons */}
+        <div className="absolute top-60 left-32 text-blue-300 opacity-40 animate-[float_6s_ease-in-out_infinite" style={{ animationDelay: '2s' }}>
+          <Fish size={44} />
+        </div>
+        <div className="absolute bottom-40 right-16 text-blue-300 opacity-35 animate-[float_6s_ease-in-out_infinite" style={{ animationDelay: '3s' }}>
+          <Fish size={40} />
+        </div>
+
+        {/* Corn Icons */}
+        <div className="absolute top-80 right-32 text-yellow-400 opacity-40 animate-[float_6s_ease-in-out_infinite" style={{ animationDelay: '1.5s' }}>
+          <Wheat size={44} />
+        </div>
+        <div className="absolute bottom-60 left-20 text-yellow-400 opacity-35 animate-[float_6s_ease-in-out_infinite" style={{ animationDelay: '2.5s' }}>
+          <Wheat size={40} />
+        </div>
+
+        {/* Bean Icons */}
+        <div className="absolute top-32 left-48 text-green-300 opacity-40 animate-[float_6s_ease-in-out_infinite" style={{ animationDelay: '0.5s' }}>
+          <Sprout size={40} />
+        </div>
+        <div className="absolute bottom-32 right-48 text-green-300 opacity-35 animate-[float_6s_ease-in-out_infinite" style={{ animationDelay: '3.5s' }}>
+          <Sprout size={44} />
+        </div>
+
+        {/* Snail Icons */}
+        <div className="absolute top-52 right-40 text-purple-300 opacity-40 animate-[float_6s_ease-in-out_infinite" style={{ animationDelay: '1.2s' }}>
+          <Snail size={40} />
+        </div>
+        <div className="absolute bottom-52 left-40 text-purple-300 opacity-35 animate-[float_6s_ease-in-out_infinite" style={{ animationDelay: '2.8s' }}>
+          <Snail size={36} />
+        </div>
+
+        {/* Pig Icons */}
+        <div className="absolute top-72 left-64 text-pink-300 opacity-40 animate-[float_6s_ease-in-out_infinite" style={{ animationDelay: '0.8s' }}>
+          <PiggyBank size={44} />
+        </div>
+        <div className="absolute bottom-72 right-64 text-pink-300 opacity-35 animate-[float_6s_ease-in-out_infinite" style={{ animationDelay: '3.2s' }}>
+          <PiggyBank size={40} />
         </div>
       </div>
 
-      {/* Error */}
-      {error && (
-        <div className="text-center p-12 text-gray-500">
-          <p>{error}</p>
-        </div>
-      )}
+      <div className="max-w-[1200px] mx-auto my-8 px-4 relative z-10">
+        {/* Header */}
+        <div className="text-center mb-8 px-4">
+          <img
+            src="/logo.png"
+            alt="CapVets Logo"
+            className="w-20 h-auto mb-6 mx-auto animate-[fadeInDown_0.8s_ease-out]"
+          />
+          <h1 className="text-4xl font-bold text-gray-800 mb-2 animate-[fadeInUp_0.8s_ease-out]">
+            Our Products
+          </h1>
+          <p className="text-gray-500 text-lg animate-[fadeInUp_0.8s_ease-out_0.2s] opacity-0 [animation-fill-mode:forwards]">
+            Take a look at our quality products before placing your order
+          </p>
 
-      {/* Loading */}
-      {loading ? (
-        <div className="text-center p-12">
-          <div className="w-12 h-12 border-4 border-gray-200 border-t-yellow-400 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading gallery...</p>
+          {/* Filters */}
+          <div className="flex justify-center gap-3 mt-8 animate-[fadeInUp_0.8s_ease-out_0.4s] opacity-0 [animation-fill-mode:forwards] flex-wrap">
+            {['all', 'images', 'videos'].map((filter) => (
+              <button
+                key={filter}
+                className={`px-4 py-2 border-2 border-yellow-400 rounded-full font-medium text-sm min-w-[80px] transition-all duration-300 cursor-pointer
+                ${activeFilter === filter
+                    ? 'bg-yellow-400 text-gray-800 shadow-sm'
+                    : 'bg-transparent text-gray-800 hover:bg-yellow-400 hover:text-gray-800'
+                  }`}
+                onClick={() => setActiveFilter(filter)}
+              >
+                {filter === 'all' ? 'All' : filter === 'images' ? 'Photos' : 'Videos'}
+              </button>
+            ))}
+          </div>
         </div>
-      ) : filteredMedia.length === 0 ? (
-        <div className="text-center p-12 text-gray-500">
-          <p>No media items to display.</p>
-        </div>
-      ) : (
-        /* Gallery Grid */
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-8 p-4">
-          {filteredMedia.map((item, index) => {
-            const categoryKey = getCategoryForMedia(item);
-            const isCategory = categoryKey !== null;
-            return (
-              <MediaCard
-                key={item.public_id || index}
-                item={item}
-                isCategory={isCategory}
-                categoryData={isCategory ? { key: categoryKey, ...CHICKEN_CATEGORIES[categoryKey] } : null}
-              />
-            );
-          })}
-        </div>
-      )}
 
-      {/* CTA Section */}
-      <div className="text-center my-12 px-4">
-        {selectedProduct === 'chicken' && selectedCategory && (
-          <div className="bg-gradient-to-br from-green-50 to-white border-2 border-green-700 rounded-xl p-6 mb-6 max-w-md mx-auto">
-            <h4 className="text-green-700 text-lg font-semibold mb-2">
-              Selected: {CHICKEN_CATEGORIES[selectedCategory].label}
-            </h4>
-            <p className="text-gray-800 font-medium">
-              Price: {CHICKEN_CATEGORIES[selectedCategory].price.toLocaleString()} CFA per chicken
-            </p>
+        {/* Error */}
+        {error && (
+          <div className="text-center p-12 text-gray-500">
+            <p>{error}</p>
           </div>
         )}
-        {selectedProduct && selectedProduct !== 'chicken' && (
-          <div className="bg-gradient-to-br from-green-50 to-white border-2 border-green-700 rounded-xl p-6 mb-6 max-w-md mx-auto">
-            <h4 className="text-green-700 text-lg font-semibold mb-2">
-              Selected: {PRODUCT_PRICING[selectedProduct].label}
-            </h4>
-            <p className="text-gray-800 font-medium">
-              Unit: {selectedUnit || Object.keys(PRODUCT_PRICING[selectedProduct].units)[0]}
-            </p>
-            <p className="text-gray-800 font-medium">
-              Price: {(PRODUCT_PRICING[selectedProduct].units[selectedUnit || Object.keys(PRODUCT_PRICING[selectedProduct].units)[0]]).toLocaleString()} CFA per unit
-            </p>
+
+        {/* Loading */}
+        {loading ? (
+          <div className="text-center p-12">
+            <div className="w-12 h-12 border-4 border-gray-200 border-t-yellow-400 rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-500">Loading gallery...</p>
+          </div>
+        ) : filteredMedia.length === 0 ? (
+          <div className="text-center p-12 text-gray-500">
+            <p>No media items to display.</p>
+          </div>
+        ) : (
+          /* Gallery Grid */
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-8 p-4">
+            {filteredMedia.map((item, index) => {
+              const categoryKey = getCategoryForMedia(item);
+              const isCategory = categoryKey !== null;
+              return (
+                <MediaCard
+                  key={item.public_id || index}
+                  item={item}
+                  isCategory={isCategory}
+                  categoryData={isCategory ? { key: categoryKey, ...CHICKEN_CATEGORIES[categoryKey] } : null}
+                />
+              );
+            })}
           </div>
         )}
-        <button
-          className="inline-block px-8 py-4 bg-green-700 text-yellow-400 rounded-lg font-semibold text-lg min-w-[200px] text-center shadow-sm transition-all duration-300 hover:bg-green-800 hover:scale-105 hover:shadow-md cursor-pointer"
-          onClick={handleOrderNow}
-        >
-          {selectedProduct === 'chicken' && selectedCategory
-            ? `Order ${CHICKEN_CATEGORIES[selectedCategory].label} 🛒`
-            : selectedProduct && selectedProduct !== 'chicken'
-              ? `Order ${PRODUCT_PRICING[selectedProduct].label} 🛒`
-              : 'Order Now 🛒'}
-        </button>
+
+        {/* CTA Section */}
+        <div className="text-center my-12 px-4">
+          {selectedProduct === 'chicken' && selectedCategory && (
+            <div className="bg-gradient-to-br from-green-50 to-white border-2 border-green-700 rounded-xl p-6 mb-6 max-w-md mx-auto">
+              <h4 className="text-green-700 text-lg font-semibold mb-2">
+                Selected: {CHICKEN_CATEGORIES[selectedCategory].label}
+              </h4>
+              <p className="text-gray-800 font-medium">
+                Price: {CHICKEN_CATEGORIES[selectedCategory].price.toLocaleString()} CFA per chicken
+              </p>
+            </div>
+          )}
+          {selectedProduct && selectedProduct !== 'chicken' && (
+            <div className="bg-gradient-to-br from-green-50 to-white border-2 border-green-700 rounded-xl p-6 mb-6 max-w-md mx-auto">
+              <h4 className="text-green-700 text-lg font-semibold mb-2">
+                Selected: {PRODUCT_PRICING[selectedProduct].label}
+              </h4>
+              <p className="text-gray-800 font-medium">
+                Unit: {selectedUnit || Object.keys(PRODUCT_PRICING[selectedProduct].units)[0]}
+              </p>
+              <p className="text-gray-800 font-medium">
+                Price: {(PRODUCT_PRICING[selectedProduct].units[selectedUnit || Object.keys(PRODUCT_PRICING[selectedProduct].units)[0]]).toLocaleString()} CFA per unit
+              </p>
+            </div>
+          )}
+          <button
+            className="inline-block px-8 py-4 bg-green-700 text-yellow-400 rounded-lg font-semibold text-lg min-w-[200px] text-center shadow-sm transition-all duration-300 hover:bg-green-800 hover:scale-105 hover:shadow-md cursor-pointer"
+            onClick={handleOrderNow}
+          >
+            {selectedProduct === 'chicken' && selectedCategory
+              ? `Order ${CHICKEN_CATEGORIES[selectedCategory].label} 🛒`
+              : selectedProduct && selectedProduct !== 'chicken'
+                ? `Order ${PRODUCT_PRICING[selectedProduct].label} 🛒`
+                : 'Order Now 🛒'}
+          </button>
+        </div>
       </div>
     </div>
   );
