@@ -25,3 +25,15 @@ body {
     transform: translateY(0);
   }
 }
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+  75% {
+    transform: translateY(5px) rotate(-1deg);
+  }
+}
