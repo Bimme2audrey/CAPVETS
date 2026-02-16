@@ -29,13 +29,11 @@ export async function DELETE(
 
     const { publicId } = await context.params;
 
-    console.log("Delete API called and this is the public Id of the element to be deleted: ", publicId)
-
     // Delete from Cloudinary
     await cloudinary.uploader.destroy(publicId);
 
     // Delete from database
-    await Media.findOneAndDelete({ public_id: publicId });
+    await Media.findOneAndDelete({ public_id: `capvets/${publicId}` });
 
     return NextResponse.json({
       success: true,
