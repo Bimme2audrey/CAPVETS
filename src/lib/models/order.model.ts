@@ -20,7 +20,16 @@ const orderSchema = new mongoose.Schema({
   },
   unit: {
     type: String,
-    default: 'crate'
+    default: ''
+  },
+  chickenNature: {
+    type: String,
+    enum: ['live', 'ready-to-cook'],
+    default: 'live'
+  },
+  weightRange: {
+    type: String,
+    default: ''
   },
   quantity: {
     type: Number,
@@ -30,16 +39,11 @@ const orderSchema = new mongoose.Schema({
   cutUp: {
     type: String,
     enum: ['yes', 'no'],
-    required: true
+    default: 'no'
   },
   cutPieces: {
-    type: Number,
-    default: 8
-  },
-  chickenState: {
     type: String,
-    enum: ['fresh', 'frozen'],
-    default: 'fresh'
+    default: ''
   },
   specialInstructions: {
     type: String,
@@ -78,10 +82,10 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  status: {
+  deliveryStatus: {
     type: String,
-    enum: ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'DELIVERED', 'CANCELLED'],
-    default: 'PENDING'
+    enum: ['pending', 'scheduled', 'preparing', 'out-for-delivery', 'delivered', 'cancelled'],
+    default: 'pending'
   },
   // Payment Information
   paymentRef: {

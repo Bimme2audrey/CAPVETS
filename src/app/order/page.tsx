@@ -41,16 +41,16 @@ function OrderPageContent() {
   const totalSteps = 3;
 
   const [formData, setFormData] = useState({
+    // Product Details
     productType: 'chicken',
-    unit: 'crate',
+    unit: '',
     chickenNature: 'live',
     weightRange: '1.5-1.6kg',
     quantity: '',
     cutUp: 'no',
-    cutPieces: '8',
-    selectedParts: [] as string[],
-    chickenState: 'fresh',
+    cutPieces: '',
     specialInstructions: '',
+    // Customer Info
     name: '',
     phone: '',
     email: '',
@@ -70,13 +70,30 @@ function OrderPageContent() {
     const productType = searchParams.get('productType');
     const weightRange = searchParams.get('weightRange');
     const unit = searchParams.get('unit');
+    const price = searchParams.get('price');
+    const label = searchParams.get('label');
+
     if (productType) {
-      setFormData((prev) => ({
-        ...prev,
-        productType,
-        ...(weightRange ? { weightRange } : {}),
-        ...(unit ? { unit } : {}),
-      }));
+      // Set the form data with gallery parameters
+      setFormData((prev) => {
+        const updates = {
+          ...prev,
+          productType,
+          ...(weightRange ? { weightRange } : {}),
+          ...(unit ? { unit } : {}),
+        };
+
+        // For non-chicken products, ensure unit is set correctly
+        if (productType !== 'chicken' && !unit) {
+          const defaultUnit = Object.keys(pricingConfig.productPricing[productType]?.units || {})[0];
+          updates.unit = defaultUnit;
+        }
+
+        return updates;
+      });
+
+      // Log what we received for debugging
+      console.log('Gallery params:', { productType, weightRange, unit, price, label });
     }
   }, [searchParams]);
 
@@ -89,8 +106,13 @@ function OrderPageContent() {
     const { name, value } = e.target;
     setFormData((prev) => {
       const updates = { ...prev, [name]: value };
-      if (name === 'cutUp' && value === 'no') updates.selectedParts = [];
-      if (name === 'chickenNature' && value === 'live') { updates.cutUp = 'no'; updates.selectedParts = []; }
+      if (name === 'cutUp' && value === 'no') {
+        updates.cutPieces = '';
+      }
+      if (name === 'chickenNature' && value === 'live') {
+        updates.cutUp = 'no';
+        updates.cutPieces = '';
+      }
       return updates;
     });
   };
@@ -102,9 +124,8 @@ function OrderPageContent() {
       productType: value,
       quantity: '',
       cutUp: 'no',
-      cutPieces: '8',
-      selectedParts: [],
-      unit: value === 'chicken' ? prev.unit : (Object.keys(pricingConfig.productPricing[value]?.units || { crate: 0 })[0] || 'crate')
+      cutPieces: '',
+      unit: value === 'chicken' ? '' : (Object.keys(pricingConfig.productPricing[value]?.units || { crate: 0 })[0] || 'crate')
     }));
   };
 

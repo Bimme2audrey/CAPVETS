@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_ENDPOINTS } from '@/lib/api';
-import {Egg, Fish, Wheat, Sprout, Snail,PiggyBank} from 'lucide-react';
+import { Egg, Fish, Wheat, Sprout, Snail, PiggyBank } from 'lucide-react';
 
 const CHICKEN_CATEGORIES: Record<string, { weight: string; price: number; label: string; color: string }> = {
   '1.5-1.6kg': { weight: '1.5-1.6kg', price: 3000, label: 'Small (1.5-1.6kg)', color: '#10b981' },
@@ -31,6 +31,8 @@ interface MediaItem {
   title?: string;
   public_id?: string;
   thumbnail?: string;
+  productType?: string;
+  chickenCategory?: string;
 }
 
 export default function Gallery() {
@@ -88,6 +90,11 @@ export default function Gallery() {
   }, []);
 
   const getProductForMedia = useCallback((item: MediaItem): string | null => {
+    // First check if productType is explicitly set in the media item
+    if (item.productType) {
+      return item.productType;
+    }
+    // Fallback to description-based detection
     const t = `${item.title || ''} ${item.description || ''}`.toLowerCase();
     if (t.includes('chicken') || t.includes('poulet')) return 'chicken';
     if (t.includes('egg') || t.includes('oeuf')) return 'eggs';
@@ -139,7 +146,16 @@ export default function Gallery() {
         setSelectedProduct(product);
         setSelectedCategory(null);
         setActiveFilter('all');
-        if (product !== 'chicken') {
+        if (product === 'chicken') {
+          // Use stored chickenCategory if available
+          const weightRange = item.chickenCategory || '1.5-1.6kg';
+          const cat = CHICKEN_CATEGORIES[weightRange];
+          if (cat) {
+            router.push(`/order?productType=chicken&weightRange=${cat.weight}&price=${cat.price}&label=${encodeURIComponent(cat.label)}`);
+          } else {
+            router.push(`/order?productType=chicken`);
+          }
+        } else {
           const defaultUnit = Object.keys(PRODUCT_PRICING[product].units)[0];
           setSelectedUnit(defaultUnit);
           router.push(`/order?productType=${product}&unit=${defaultUnit}`);
