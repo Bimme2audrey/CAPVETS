@@ -10,13 +10,13 @@ async function connectDB() {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
     const { statusType, newStatus } = await request.json();
-    const orderId = params.id;
+    const { id: orderId } = await params;
 
     if (!orderId || !statusType || !newStatus) {
       return NextResponse.json(
