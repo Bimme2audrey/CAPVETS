@@ -29,6 +29,12 @@ function Icon({ name }: { name: string }) {
       return <svg className={cls} viewBox="0 0 24 24"><path d="M16 13v-2H7V8l-5 4 5 4v-3zM20 3h-8v2h8v14h-8v2h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z" /></svg>;
     case 'open':
       return <svg className={cls} viewBox="0 0 24 24"><path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3zM5 5h5v2H7v10h10v3H5V5z" /></svg>;
+    case 'menu':
+      return <svg className={cls} viewBox="0 0 24 24"><path d="M3 12h18v2H3v-2zm0-6h18v2H3V6zm0 12h18v2H3v-2z" /></svg>;
+    case 'chevron-left':
+      return <svg className={cls} viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12l4.58-4.59z" /></svg>;
+    case 'chevron-right':
+      return <svg className={cls} viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12l-4.58 4.59z" /></svg>;
     default:
       return null;
   }
@@ -38,6 +44,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const pathname = usePathname();
   const [authenticated, setAuthenticated] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -58,48 +65,80 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
-      <aside className="w-60 bg-gray-900 text-white flex flex-col shrink-0">
-        <div className="p-5 border-b border-gray-700">
-          <img src="/logo.png" alt="Logo" className="w-10 h-auto mb-2" />
-          <div className="text-sm font-bold text-gray-300">CAPVETS System Admin</div>
+      <aside className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 flex flex-col shrink-0 transition-all duration-300 ease-in-out fixed left-0 top-0 h-screen z-10`}>
+        {/* Logo Section - Collapsible */}
+        <div className="p-4 border-b border-gray-200 flex flex-col items-center relative">
+          {/* Collapse Toggle Button */}
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="absolute -right-2 top-8 bg-white border border-gray-300 rounded-full p-1.5 shadow-sm hover:bg-gray-50 transition-colors z-10"
+          >
+            <Icon name={isCollapsed ? 'chevron-right' : 'chevron-left'} />
+          </button>
+
+          {/* Logo */}
+          <div className={`${isCollapsed ? 'w-10 h-10' : 'w-20 h-20'} flex items-center justify-center mb-2 transition-all duration-300`}>
+            <img src="/logo.png" alt="CAPVETS Logo" className="w-full h-full object-contain" />
+          </div>
+
+          {/* Text - Hidden when collapsed */}
+          {!isCollapsed && (
+            <>
+              <div className="text-lg font-bold text-gray-800 text-center">CAPVETS</div>
+              <div className="text-sm text-gray-500 text-center">Admin Dashboard</div>
+            </>
+          )}
         </div>
 
+        {/* Navigation */}
         <nav className="flex-1 py-4">
-          <ul className="space-y-1 px-3">
+          <ul className="space-y-3 px-2">
             {navItems.map((item) => {
               const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
               return (
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200
-                      ${isActive ? 'bg-green-700 text-yellow-400' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
+                    className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-start'} gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200
+                      ${isActive
+                        ? 'bg-green-50 text-green-700 border-l-4 border-green-600'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:border-l-4 hover:border-green-400'}`}
+                    title={isCollapsed ? item.label : ''}
                   >
                     <Icon name={item.icon} />
-                    {item.label}
+                    {!isCollapsed && item.label}
                   </Link>
                 </li>
               );
             })}
             <li>
-              <a href="/" className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition-all duration-200">
+              <a
+                href="/"
+                className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-start'} gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:border-l-4 hover:border-blue-400 transition-all duration-200`}
+                title={isCollapsed ? 'Visit Site' : ''}
+              >
                 <Icon name="open" />
-                Home
+                {!isCollapsed && 'Visit Site'}
               </a>
             </li>
           </ul>
         </nav>
 
-        <div className="p-3 border-t border-gray-700">
-          <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:bg-red-900/30 hover:text-red-300 transition-all duration-200 w-full cursor-pointer">
+        {/* Logout Section */}
+        <div className="p-3 border-t border-gray-200">
+          <button
+            onClick={handleLogout}
+            className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-start'} gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 w-full cursor-pointer`}
+            title={isCollapsed ? 'Logout' : ''}
+          >
             <Icon name="logout" />
-            Logout
+            {!isCollapsed && 'Logout'}
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 bg-gray-50 p-6 overflow-auto">
+      <main className={`flex-1 bg-gray-50 p-6 overflow-auto transition-all duration-300 ease-in-out ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
         {children}
       </main>
     </div>

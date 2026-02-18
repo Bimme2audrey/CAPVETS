@@ -8,8 +8,6 @@ interface FormData {
   quantity: string;
   cutUp: string;
   cutPieces: string;
-  selectedParts: string[];
-  chickenState: string;
   specialInstructions: string;
 }
 

@@ -48,6 +48,8 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get('media') as File;
     const description = formData.get('description') as string;
+    const productType = formData.get('productType') as string;
+    const chickenCategory = formData.get('chickenCategory') as string;
 
     if (!file) {
       return NextResponse.json(
@@ -79,7 +81,9 @@ export async function POST(request: NextRequest) {
       url: (result as any).secure_url,
       public_id: (result as any).public_id,
       type: (result as any).resource_type === 'video' ? 'videos' : 'images',
-      description: description || ''
+      description: description || '',
+      productType: productType || '',
+      chickenCategory: chickenCategory || ''
     });
 
     await media.save();
