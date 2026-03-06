@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_ENDPOINTS } from '@/lib/api';
-import { Egg, Fish, Wheat, Sprout, Snail, PiggyBank } from 'lucide-react';
+import { Egg, Fish, Wheat, Sprout, Snail, PiggyBank, TrendingUp, Clock, Users, Package, Star, Shield, Smartphone } from 'lucide-react';
 
 const CHICKEN_CATEGORIES: Record<string, { weight: string; price: number; label: string; color: string }> = {
   '1.5-1.6kg': { weight: '1.5-1.6kg', price: 3000, label: 'Small (1.5-1.6kg)', color: '#10b981' },
@@ -280,6 +280,29 @@ export default function Gallery() {
             alt="CapVets Logo"
             className="w-20 h-auto mb-6 mx-auto animate-[fadeInDown_0.8s_ease-out]"
           />
+
+          {/* Urgency Banner */}
+          <div className="bg-gradient-to-r from-green-600 via-green-500 to-yellow-500 text-white rounded-2xl p-6 mb-8 text-center shadow-lg animate-[fadeInUp_0.8s_ease-out_0.1s] opacity-0 [animation-fill-mode:forwards]">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <TrendingUp className="w-6 h-6" />
+              <h3 className="text-xl md:text-2xl font-bold">Everyone&apos;s Buying Fresh Today!</h3>
+              <TrendingUp className="w-6 h-6" />
+            </div>
+            <p className="text-white/90 text-sm md:text-base mb-3">
+              Don&apos;t get left behind! Join hundreds of smart shoppers getting farm-fresh quality delivered today.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4 text-sm">
+              <span className="bg-white/20 px-3 py-1 rounded-full flex items-center gap-1">
+                <Users className="w-4 h-4" />
+                50+ Happy Customers This Week
+              </span>
+              <span className="bg-white/20 px-3 py-1 rounded-full flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                Same-Day Delivery Available
+              </span>
+            </div>
+          </div>
+
           <h1 className="text-4xl font-bold text-gray-800 mb-2 animate-[fadeInUp_0.8s_ease-out]">
             Our Products
           </h1>
@@ -375,6 +398,69 @@ export default function Gallery() {
                 ? `Order ${PRODUCT_PRICING[selectedProduct].label} 🛒`
                 : 'Order Now 🛒'}
           </button>
+        </div>
+
+        {/* FOMO & Why Choose CAPVETS Section */}
+        <div className="mb-12 px-4">
+          {/* Why Choose CAPVETS */}
+          <div className="bg-gradient-to-br from-green-50 to-yellow-50 rounded-2xl p-6 md:p-8 border-2 border-green-200 animate-[fadeInUp_0.8s_ease-out_0.6s] opacity-0 [animation-fill-mode:forwards]">
+            <h3 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-6">
+              Why Smart Buyers Choose <span className="text-green-700">CAPVETS</span>
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6">
+              {/* Reason 1 */}
+              <div className="bg-white rounded-xl p-5 shadow-sm border border-green-100 hover:shadow-md transition-shadow">
+                <Package className="w-8 h-8 text-green-600 mb-3" />
+                <h4 className="font-bold text-gray-800 mb-2">Farm-Fresh Quality</h4>
+                <p className="text-gray-600 text-sm">Straight from our farm to your table. No middlemen, no delays – just pure freshness you can taste.</p>
+              </div>
+
+              {/* Reason 2 */}
+              <div className="bg-white rounded-xl p-5 shadow-sm border border-green-100 hover:shadow-md transition-shadow">
+                <TrendingUp className="w-8 h-8 text-green-600 mb-3" />
+                <h4 className="font-bold text-gray-800 mb-2">Best Prices Guaranteed</h4>
+                <p className="text-gray-600 text-sm">We cut out the middlemen so you get premium quality at prices that won&apos;t break the bank.</p>
+              </div>
+
+              {/* Reason 3 */}
+              <div className="bg-white rounded-xl p-5 shadow-sm border border-green-100 hover:shadow-md transition-shadow">
+                <Clock className="w-8 h-8 text-green-600 mb-3" />
+                <h4 className="font-bold text-gray-800 mb-2">Fast Delivery</h4>
+                <p className="text-gray-600 text-sm">Order today, receive today! We deliver fresh products right to your doorstep in record time.</p>
+              </div>
+
+              {/* Reason 4 */}
+              <div className="bg-white rounded-xl p-5 shadow-sm border border-green-100 hover:shadow-md transition-shadow">
+                <Star className="w-8 h-8 text-green-600 mb-3" />
+                <h4 className="font-bold text-gray-800 mb-2">Trusted by Hundreds</h4>
+                <p className="text-gray-600 text-sm">Join our growing family of satisfied customers who keep coming back for more!</p>
+              </div>
+
+              {/* Reason 5 */}
+              <div className="bg-white rounded-xl p-5 shadow-sm border border-green-100 hover:shadow-md transition-shadow">
+                <Shield className="w-8 h-8 text-green-600 mb-3" />
+                <h4 className="font-bold text-gray-800 mb-2">Hygienically Processed</h4>
+                <p className="text-gray-600 text-sm">All our products are processed in clean, hygienic conditions following the highest standards.</p>
+              </div>
+
+              {/* Reason 6 */}
+              <div className="bg-white rounded-xl p-5 shadow-sm border border-green-100 hover:shadow-md transition-shadow">
+                <Smartphone className="w-8 h-8 text-green-600 mb-3" />
+                <h4 className="font-bold text-gray-800 mb-2">Easy Ordering</h4>
+                <p className="text-gray-600 text-sm">Just click, order, and relax. Our simple process makes buying farm products a breeze!</p>
+              </div>
+            </div>
+
+            {/* Social Proof */}
+            <div className="text-center bg-green-700 text-white rounded-xl p-4 mt-4">
+              <p className="text-lg font-semibold mb-1 flex items-center justify-center gap-2">
+                <Users className="w-5 h-5" />
+                Join 500+ Satisfied Customers!
+              </p>
+              <p className="text-green-100 text-sm">People who bought from us never go back to the market. You won&apos;t either!</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
