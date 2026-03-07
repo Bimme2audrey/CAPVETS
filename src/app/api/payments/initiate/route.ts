@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     // TODO: Integrate with actual MeSomb payment service
     // For now, return a mock response
 
-    const res = await fetch("https://demo.campay.net/api/get_payment_link/", {
+    const res = await fetch("https://campay.net/api/get_payment_link/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
