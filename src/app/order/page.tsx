@@ -193,6 +193,8 @@ function OrderPageContent() {
       localStorage.setItem('pendingOrder', JSON.stringify(orderData));
 
       // Send order confirmation notifications
+      // TODO: Re-enable after notification service is properly set up
+      /*
       try {
         const { OrderNotificationService } = await import('@/lib/notifications/order-notifications');
         const orderId = `ORD_${Date.now()}_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
@@ -221,6 +223,7 @@ function OrderPageContent() {
         console.error('Failed to send order confirmation:', notificationError);
         // Continue with order process even if notifications fail
       }
+      */
 
       showToast('Order submitted! Proceeding to payment...', 'success');
       setTimeout(() => router.push('/payment'), 1500);
