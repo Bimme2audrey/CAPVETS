@@ -191,6 +191,37 @@ function OrderPageContent() {
       };
 
       localStorage.setItem('pendingOrder', JSON.stringify(orderData));
+
+      // Send order confirmation notifications
+      try {
+        const { OrderNotificationService } = await import('@/lib/notifications/order-notifications');
+        const orderId = `ORD_${Date.now()}_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+        const notificationData = {
+          orderId,
+          customerName: customerInfo.name,
+          customerEmail: customerInfo.email,
+          customerPhone: customerInfo.phone,
+          items: orderFormData.items,
+          total: orderTotals.total,
+          deliveryFee: orderTotals.deliveryFee,
+          specialInstructions: orderFormData.specialInstructions,
+          orderType: customerInfo.orderType,
+          address: customerInfo.address,
+          preferredTime: customerInfo.preferredTime,
+          paymentLink: `${window.location.origin}/payment`
+        };
+
+        const notifications = await OrderNotificationService.sendOrderConfirmation(notificationData);
+        console.log('Order confirmation notifications sent:', notifications);
+
+        // Store order ID for later use
+        localStorage.setItem('currentOrderId', orderId);
+      } catch (notificationError) {
+        console.error('Failed to send order confirmation:', notificationError);
+        // Continue with order process even if notifications fail
+      }
+
       showToast('Order submitted! Proceeding to payment...', 'success');
       setTimeout(() => router.push('/payment'), 1500);
     } catch {
