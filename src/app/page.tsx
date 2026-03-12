@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_ENDPOINTS } from '@/lib/api';
 import { Egg, Fish, Wheat, Sprout, Snail, PiggyBank, TrendingUp, Clock, Users, Package, Star, Shield, Smartphone } from 'lucide-react';
+import Footer from '@/components/Footer';
 
 const CHICKEN_CATEGORIES: Record<string, { weight: string; price: number; label: string; color: string }> = {
   '1.5-1.6kg': { weight: '1.5-1.6kg', price: 3000, label: 'Small (1.5-1.6kg)', color: '#10b981' },
@@ -463,6 +464,7 @@ export default function Gallery() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

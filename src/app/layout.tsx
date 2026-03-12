@@ -37,9 +37,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${museoSans.variable} font-sans antialiased`}
+        className={`${museoSans.variable} font-sans antialiased min-h-screen flex flex-col`}
       >
-        {children}
+        <main className="flex-1">
+          {children}
+        </main>
       </body>
     </html>
   );

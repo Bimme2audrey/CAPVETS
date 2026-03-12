@@ -7,6 +7,29 @@ import Step1OrderDetails from '@/components/order/Step1OrderDetails';
 import Step2CustomerInfo from '@/components/order/Step2CustomerInfo';
 import Step3Preview from '@/components/order/Step3Preview';
 
+interface OrderItem {
+  id: string;
+  productType: string;
+  unit?: string;
+  chickenNature: string;
+  weightRange: string;
+  quantity: number;
+  cutUp: string;
+  cutPieces: string;
+  unitPrice: number;
+  itemTotal: number;
+  cutUpFee: number;
+}
+
+interface CustomerInfo {
+  name: string;
+  phone: string;
+  email: string;
+  orderType: string;
+  address: string;
+  preferredTime: string;
+}
+
 const pricingConfig = {
   basePrice: 100,
   cutUpFeeLow: 100,
@@ -40,60 +63,57 @@ function OrderPageContent() {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
 
-  const [formData, setFormData] = useState({
-    // Product Details
-    productType: 'chicken',
-    unit: '',
-    chickenNature: 'live',
-    weightRange: '1.5-1.6kg',
-    quantity: '',
-    cutUp: 'no',
-    cutPieces: '',
-    specialInstructions: '',
-    // Customer Info
+  const [orderFormData, setOrderFormData] = useState({
+    items: [] as OrderItem[],
+    specialInstructions: ''
+  });
+  const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     name: '',
     phone: '',
     email: '',
     orderType: 'pickup',
     address: '',
     preferredTime: '',
-    status: 'Pending',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [priceBreakdown, setPriceBreakdown] = useState({ subtotal: 0, cutUpFee: 0, deliveryFee: 0, total: 0 });
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [deliveryFee, setDeliveryFee] = useState(0);
   const [deliveryDistance, setDeliveryDistance] = useState(0);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   // Handle pre-selected product from Gallery
   useEffect(() => {
     const productType = searchParams.get('productType');
     const weightRange = searchParams.get('weightRange');
     const unit = searchParams.get('unit');
-    const price = searchParams.get('price');
-    const label = searchParams.get('label');
 
     if (productType) {
-      // Set the form data with gallery parameters
-      setFormData((prev) => {
-        const updates = {
-          ...prev,
-          productType,
-          ...(weightRange ? { weightRange } : {}),
-          ...(unit ? { unit } : {}),
-        };
+      // Auto-add a default item if coming from gallery
+      let unitPrice = 0;
+      let defaultUnit = '';
 
-        // For non-chicken products, ensure unit is set correctly
-        if (productType !== 'chicken' && !unit) {
-          const defaultUnit = Object.keys(pricingConfig.productPricing[productType]?.units || {})[0];
-          updates.unit = defaultUnit;
-        }
+      if (productType === 'chicken') {
+        unitPrice = pricingConfig.chickenCategories[weightRange || '1.5-1.6kg'] || 0;
+      } else {
+        defaultUnit = Object.keys(pricingConfig.productPricing[productType]?.units || {})[0] || '';
+        unitPrice = pricingConfig.productPricing[productType]?.units?.[defaultUnit] || 0;
+      }
 
-        return updates;
-      });
+      const newItem: OrderItem = {
+        id: Date.now().toString(),
+        productType,
+        unit: productType === 'chicken' ? '' : defaultUnit,
+        chickenNature: 'live',
+        weightRange: productType === 'chicken' ? weightRange || '1.5-1.6kg' : '',
+        quantity: 1,
+        cutUp: 'no',
+        cutPieces: '',
+        unitPrice,
+        itemTotal: unitPrice,
+        cutUpFee: 0
+      };
 
-      // Log what we received for debugging
-      console.log('Gallery params:', { productType, weightRange, unit, price, label });
+      setOrderFormData({ items: [newItem], specialInstructions: '' });
     }
   }, [searchParams]);
 
@@ -102,36 +122,9 @@ function OrderPageContent() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleCustomerInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => {
-      const updates = { ...prev, [name]: value };
-      if (name === 'cutUp' && value === 'no') {
-        updates.cutPieces = '';
-      }
-      if (name === 'chickenNature' && value === 'live') {
-        updates.cutUp = 'no';
-        updates.cutPieces = '';
-      }
-      return updates;
-    });
-  };
-
-  const handleProductChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      productType: value,
-      quantity: '',
-      cutUp: 'no',
-      cutPieces: '',
-      unit: value === 'chicken' ? '' : (Object.keys(pricingConfig.productPricing[value]?.units || { crate: 0 })[0] || 'crate')
-    }));
-  };
-
-  const getCutUpFee = (cutPieces: string) => {
-    const pieces = parseInt(cutPieces) || 0;
-    return pieces > 4 ? pricingConfig.cutUpFeeHigh : pricingConfig.cutUpFeeLow;
+    setCustomerInfo(prev => ({ ...prev, [name]: value }));
   };
 
   const getDeliveryFee = useCallback((dist: number) => {
@@ -141,40 +134,30 @@ function OrderPageContent() {
     return pricingConfig.deliveryZones.zone4.fee;
   }, []);
 
-  // Handle delivery fee updates from Step2CustomerInfo
+  // Handle delivery fee updates
   const handleDeliveryFeeChange = useCallback((fee: number, distance?: number) => {
-    setPriceBreakdown(prev => ({ ...prev, deliveryFee: fee }));
+    setDeliveryFee(fee);
     if (distance !== undefined) setDeliveryDistance(distance);
   }, []);
 
-  // Calculate pricing
-  useEffect(() => {
-    const quantity = parseInt(formData.quantity) || 0;
-    const isChicken = formData.productType === 'chicken';
-    const unitPrice = isChicken
-      ? (pricingConfig.chickenCategories[formData.weightRange] || pricingConfig.basePrice)
-      : (pricingConfig.productPricing[formData.productType]?.units?.[formData.unit] || 0);
-    const subtotal = quantity * unitPrice;
-    let cutUpFee = 0;
-    if (isChicken && formData.cutUp === 'yes') {
-      cutUpFee = quantity * getCutUpFee(formData.cutPieces);
-    }
-    // Delivery fee is now handled by the delivery calculation component
-    const total = subtotal + cutUpFee + priceBreakdown.deliveryFee;
-    setPriceBreakdown(prev => ({ ...prev, subtotal, cutUpFee, total }));
-  }, [formData.quantity, formData.productType, formData.weightRange, formData.unit, formData.cutUp, formData.cutPieces, priceBreakdown.deliveryFee]);
+  // Calculate order totals
+  const orderTotals = {
+    subtotal: orderFormData.items.reduce((sum: number, item: OrderItem) => sum + item.itemTotal, 0),
+    totalCutUpFee: orderFormData.items.reduce((sum: number, item: OrderItem) => sum + item.cutUpFee, 0),
+    deliveryFee,
+    total: orderFormData.items.reduce((sum: number, item: OrderItem) => sum + item.itemTotal, 0) + deliveryFee
+  };
 
   const validateStep = (step: number) => {
     switch (step) {
       case 1:
-        if (formData.productType === 'chicken') return !!(formData.chickenNature && formData.weightRange && formData.quantity && parseInt(formData.quantity) > 0);
-        return !!(formData.productType && formData.unit && formData.quantity && parseInt(formData.quantity) > 0);
+        return orderFormData.items.length > 0;
       case 2:
-        const nameValid = formData.name.trim().length > 0;
-        const phoneValid = /^6\d{8}$/.test(formData.phone.replace(/\s|-/g, '')) || /^2376\d{8}$/.test(formData.phone.replace(/\s|-/g, '')) || /^\+2376\d{8}$/.test(formData.phone.replace(/\s|-/g, ''));
-        const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
-        const timeValid = formData.preferredTime.trim().length > 0;
-        if (formData.orderType === 'delivery') return nameValid && phoneValid && emailValid && timeValid && formData.address.length > 0;
+        const nameValid = customerInfo.name.trim().length > 0;
+        const phoneValid = /^6\d{8}$/.test(customerInfo.phone.replace(/\s|-/g, '')) || /^2376\d{8}$/.test(customerInfo.phone.replace(/\s|-/g, '')) || /^\+2376\d{8}$/.test(customerInfo.phone.replace(/\s|-/g, ''));
+        const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerInfo.email);
+        const timeValid = customerInfo.preferredTime.trim().length > 0;
+        if (customerInfo.orderType === 'delivery') return nameValid && phoneValid && emailValid && timeValid && customerInfo.address.length > 0;
         return nameValid && phoneValid && emailValid && timeValid;
       case 3: return true;
       default: return false;
@@ -185,23 +168,30 @@ function OrderPageContent() {
     if (validateStep(currentStep) && currentStep < totalSteps) setCurrentStep(currentStep + 1);
     else showToast('Please fill in all required fields before proceeding.', 'error');
   };
-  const prevStep = () => { if (currentStep > 1) setCurrentStep(currentStep - 1); };
-  const goToStep = (step: number) => { if (step <= currentStep || validateStep(step - 1)) setCurrentStep(step); };
+
+  const prevStep = () => {
+    if (currentStep > 1) setCurrentStep(currentStep - 1);
+  };
+
+  const goToStep = (step: number) => {
+    if (step <= currentStep || validateStep(step - 1)) setCurrentStep(step);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
       const orderData = {
-        ...formData,
-        total: priceBreakdown.total,
-        subtotal: priceBreakdown.subtotal,
-        cutUpFee: priceBreakdown.cutUpFee,
-        deliveryFee: priceBreakdown.deliveryFee,
-        distance: deliveryDistance
+        ...customerInfo,
+        items: orderFormData.items,
+        specialInstructions: orderFormData.specialInstructions,
+        ...orderTotals,
+        distance: deliveryDistance,
+        status: 'Pending'
       };
+
       localStorage.setItem('pendingOrder', JSON.stringify(orderData));
-      showToast('Order confirmed! Redirecting to payment...', 'success');
+      showToast('Order submitted! Proceeding to payment...', 'success');
       setTimeout(() => router.push('/payment'), 1500);
     } catch {
       showToast('Network error. Please check your connection.', 'error');
@@ -211,7 +201,7 @@ function OrderPageContent() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto my-8 px-4">
+    <div className="max-w-4xl mx-auto my-8 px-4">
       {/* Toast */}
       {toast && (
         <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-medium animate-[fadeInDown_0.3s_ease-out] ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-500'}`}>
@@ -238,10 +228,10 @@ function OrderPageContent() {
 
           {/* Step numbers */}
           <div className="flex justify-between relative">
-            {[{ num: 1, label: 'Order Details' }, { num: 2, label: 'Customer Info' }, { num: 3, label: 'Preview' }].map((step) => (
+            {[{ num: 1, label: 'Products' }, { num: 2, label: 'Customer Info' }, { num: 3, label: 'Review' }].map((step) => (
               <div key={step.num} className="flex flex-col items-center cursor-pointer" onClick={() => goToStep(step.num)}>
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 mb-1 bg-white border-4
-                  ${currentStep === step.num ? 'border-yellow-400 text-gray-800 scale-110 shadow-md' : currentStep > step.num ? 'border-green-600 text-green-600' : 'border-gray-200 text-gray-500'}`}>
+                  ${currentStep === step.num ? 'border-yellow-400 text-gray-800 scale-110 shadow-md' : currentStep > step.num ? 'border-green-600 text-green-600' : 'border-gray-200 text-gray-500'}`} >
                   {currentStep > step.num ? '✓' : step.num}
                 </div>
                 <span className={`text-xs font-medium ${currentStep === step.num ? 'text-yellow-600' : 'text-gray-400'}`}>{step.label}</span>
@@ -253,16 +243,33 @@ function OrderPageContent() {
 
       {/* Form */}
       <form onSubmit={handleSubmit}>
-        {currentStep === 1 && <Step1OrderDetails formData={formData} pricingConfig={pricingConfig} onChange={handleChange} onProductChange={handleProductChange} />}
+        {currentStep === 1 && (
+          <Step1OrderDetails
+            formData={orderFormData}
+            pricingConfig={pricingConfig}
+            onChange={setOrderFormData}
+          />
+        )}
+
         {currentStep === 2 && (
           <Step2CustomerInfo
-            formData={formData}
-            onChange={handleChange}
-            orderTotal={priceBreakdown.subtotal + priceBreakdown.cutUpFee}
+            formData={customerInfo}
+            onChange={handleCustomerInfoChange}
+            orderTotal={orderTotals.subtotal}
             onDeliveryFeeChange={handleDeliveryFeeChange}
           />
         )}
-        {currentStep === 3 && <Step3Preview formData={formData} priceBreakdown={priceBreakdown} pricingConfig={pricingConfig} onEditOrder={() => setCurrentStep(1)} onEditCustomer={() => setCurrentStep(2)} />}
+
+        {currentStep === 3 && (
+          <Step3Preview
+            items={orderFormData.items}
+            customerInfo={customerInfo}
+            totals={orderTotals}
+            pricingConfig={pricingConfig}
+            onEditOrder={() => setCurrentStep(1)}
+            onEditCustomer={() => setCurrentStep(2)}
+          />
+        )}
 
         {/* Navigation */}
         <div className="flex justify-between mt-8 gap-4">
@@ -275,7 +282,7 @@ function OrderPageContent() {
           )}
           {currentStep === totalSteps && (
             <button type="submit" disabled={isSubmitting} className={`px-6 py-3 rounded-lg font-semibold transition-all cursor-pointer ${isSubmitting ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-green-700 text-yellow-400 hover:bg-green-800 shadow-sm'}`}>
-              {isSubmitting ? 'Processing...' : `Proceed to Payment (${priceBreakdown.total.toLocaleString()} CFA)`}
+              {isSubmitting ? 'Processing...' : `Proceed to Payment (${orderTotals.total.toLocaleString()} CFA)`}
             </button>
           )}
         </div>
