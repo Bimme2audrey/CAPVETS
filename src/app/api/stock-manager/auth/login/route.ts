@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     if (username === 'stock@capvets.com' && password === 'stock123') {
       // Generate a simple token (in production, use JWT)
       const token = 'stock_token_' + Date.now() + '_' + Math.random().toString(36).substring(2);
-      
+
       // Set token in cookie
       const response = NextResponse.json({
         success: true,

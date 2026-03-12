@@ -3,20 +3,40 @@
 import { useEffect, useState } from 'react';
 import { API_ENDPOINTS } from '@/lib/api';
 
+interface OrderItem {
+  id: string;
+  productType: string;
+  unit?: string;
+  chickenNature: string;
+  weightRange: string;
+  quantity: number;
+  cutUp: string;
+  cutPieces: string;
+  unitPrice: number;
+  itemTotal: number;
+  cutUpFee: number;
+}
+
 interface Order {
   _id: string;
   name: string;
   phone: string;
   email: string;
-  productType: string;
-  quantity: string;
-  unit: string;
+  // New multi-product structure
+  items?: OrderItem[]; // Optional for backward compatibility
+  specialInstructions?: string;
+  // Legacy single-product structure (for backward compatibility)
+  productType?: string;
+  quantity?: string;
+  unit?: string;
   weightRange?: string;
   cutUp?: string;
   cutPieces?: string;
+  // Common fields
   total: number;
   subtotal: number;
-  cutUpFee: number;
+  cutUpFee?: number; // Legacy
+  totalCutUpFee?: number; // New: Total cut-up fees from all items
   deliveryFee: number;
   status: string;
   paymentStatus: string;
@@ -25,6 +45,7 @@ interface Order {
   address?: string;
   preferredTime: string;
   createdAt: string;
+  distance?: number;
 }
 
 export default function OrdersPage() {
@@ -104,13 +125,64 @@ export default function OrdersPage() {
   };
 
   const formatProductDetails = (order: Order) => {
-    if (order.productType === 'chicken') {
-      const details = [];
-      if (order.weightRange) details.push(order.weightRange);
-      if (order.cutUp === 'yes' && order.cutPieces) details.push(`Cut: ${order.cutPieces} pieces`);
-      return details.join(' • ');
+    // Debug: Log the order structure
+    console.log('Order structure:', order);
+
+    if (!order.items || order.items.length === 0) {
+      // Handle old single-product orders (seamless display)
+      if (order.productType === 'chicken') {
+        const details = [];
+        if (order.weightRange) details.push(order.weightRange);
+        if (order.cutUp === 'yes' && order.cutPieces) details.push(`Cut: ${order.cutPieces} pieces`);
+        return `${order.quantity || 'N/A'} ${order.weightRange || ''} chicken${details.length > 0 ? ` (${details.join(' • ')})` : ''}`;
+      }
+      return `${order.quantity || 'N/A'} ${order.unit || ''} ${order.productType || 'Unknown'}`;
     }
-    return `${order.quantity} ${order.unit}`;
+
+    // Handle new multi-product orders
+    const itemCount = order.items.length;
+    const totalQuantity = order.items.reduce((sum, item) => sum + item.quantity, 0);
+
+    if (itemCount === 1) {
+      const item = order.items[0];
+      if (item.productType === 'chicken') {
+        const details = [];
+        if (item.weightRange) details.push(item.weightRange);
+        if (item.cutUp === 'yes' && item.cutPieces) details.push(`Cut: ${item.cutPieces} pieces`);
+        return `${item.quantity} ${item.weightRange} chicken${details.length > 0 ? ` (${details.join(' • ')})` : ''}`;
+      }
+      return `${item.quantity} ${item.unit} ${item.productType}`;
+    }
+
+    // Multiple items
+    const chickenItems = order.items.filter(item => item.productType === 'chicken');
+    const otherItems = order.items.filter(item => item.productType !== 'chicken');
+
+    const parts = [];
+    if (chickenItems.length > 0) {
+      const chickenTotal = chickenItems.reduce((sum, item) => sum + item.quantity, 0);
+      parts.push(`${chickenTotal} chicken${chickenTotal > 1 ? 's' : ''}`);
+    }
+    if (otherItems.length > 0) {
+      parts.push(`${otherItems.length} other product${otherItems.length > 1 ? 's' : ''}`);
+    }
+
+    return `${itemCount} items (${parts.join(' + ')})`;
+  };
+
+  const formatProductSummary = (order: Order) => {
+    if (!order.items || order.items.length === 0) return 'No items';
+
+    return order.items.map(item => {
+      if (item.productType === 'chicken') {
+        const sizeLabel = item.weightRange === '1.5-1.6kg' ? 'Small' :
+          item.weightRange === '1.7-1.8kg' ? 'Medium' :
+            item.weightRange === '1.9-2.1kg' ? 'Large' :
+              item.weightRange === '2.2-2.3kg' ? 'XL' : 'Jumbo';
+        return `${item.quantity}×${sizeLabel} chicken (${item.itemTotal.toLocaleString()} CFA)`;
+      }
+      return `${item.quantity}×${item.unit} ${item.productType} (${item.itemTotal.toLocaleString()} CFA)`;
+    }).join('\n');
   };
 
   const formatPreferredTime = (timeString: string) => {
@@ -265,34 +337,69 @@ export default function OrdersPage() {
 
                         {/* Product */}
                         <td className="px-4 py-3">
-                          <div className="font-medium text-gray-900 capitalize">{order.productType}</div>
+                          <div className="font-medium text-gray-900">
+                            {order.items && order.items.length > 0 ? (
+                              order.items.length === 1 ? (
+                                order.items[0].productType.charAt(0).toUpperCase() + order.items[0].productType.slice(1)
+                              ) : (
+                                `Multi (${order.items.length} items)`
+                              )
+                            ) : (
+                              // Handle legacy single-product orders
+                              order.productType ? (
+                                order.productType.charAt(0).toUpperCase() + order.productType.slice(1)
+                              ) : (
+                                'No items'
+                              )
+                            )}
+                          </div>
                           <div className="text-xs text-gray-500">{formatProductDetails(order)}</div>
+                          {order.items && order.items.length > 1 && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                alert(formatProductSummary(order));
+                              }}
+                              className="text-xs text-blue-600 hover:text-blue-800 mt-1"
+                            >
+                              View details →
+                            </button>
+                          )}
                         </td>
 
                         {/* Quantity */}
                         <td className="px-4 py-3">
                           <div className="font-medium text-gray-900">
-                            {order.productType === 'chicken' ? (
-                              `${order.quantity} ${order.quantity === '1' ? 'chicken' : 'chickens'}`
+                            {order.items && order.items.length > 0 ? (
+                              order.items.reduce((sum, item) => sum + item.quantity, 0).toString()
                             ) : (
-                              `${order.quantity} ${order.unit}`
+                              // Handle legacy single-product orders
+                              order.quantity ? order.quantity.toString() : '0'
                             )}
                           </div>
+                          {order.items && order.items.length > 1 ? (
+                            <div className="text-xs text-gray-500">
+                              {order.items.length} types
+                            </div>
+                          ) : null}
                         </td>
 
                         {/* Amount */}
                         <td className="px-4 py-3">
                           <div className="font-medium text-gray-900">{order.total?.toLocaleString()} CFA</div>
                           <div className="text-xs text-gray-500">
-                            {order.cutUpFee > 0 && `+${order.cutUpFee} cut-up`}
+                            {(order.totalCutUpFee || order.cutUpFee || 0) > 0 && `+${(order.totalCutUpFee || order.cutUpFee || 0)} cut-up`}
                             {order.deliveryFee > 0 && ` +${order.deliveryFee} delivery`}
                           </div>
                         </td>
 
                         {/* Payment Status */}
                         <td className="px-4 py-3">
-                          <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${statusColor('paid', 'payment')}`}>
-                            Paid
+                          <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${statusColor(order.paymentStatus || 'PENDING', 'payment')}`}>
+                            {order.paymentStatus === 'COMPLETED' ? 'Paid' :
+                              order.paymentStatus === 'PENDING' ? 'Pending' :
+                                order.paymentStatus === 'FAILED' ? 'Failed' :
+                                  order.paymentStatus === 'CANCELLED' ? 'Cancelled' : 'Pending'}
                           </span>
                         </td>
 

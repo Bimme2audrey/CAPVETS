@@ -1,27 +1,17 @@
 import mongoose from 'mongoose';
 
-const orderSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true
-  },
-  phone: {
-    type: String,
-    required: true
-  },
-  email: {
-    type: String,
-    required: true
-  },
+// Order Item Schema for individual products
+const orderItemSchema = new mongoose.Schema({
   productType: {
     type: String,
     enum: ['chicken', 'eggs', 'corn', 'beans', 'soybean', 'palmnuts'],
-    default: 'chicken'
+    required: true
   },
   unit: {
     type: String,
     default: ''
   },
+  // Chicken-specific fields
   chickenNature: {
     type: String,
     enum: ['live', 'ready-to-cook'],
@@ -45,6 +35,36 @@ const orderSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  // Pricing for this item
+  unitPrice: {
+    type: Number,
+    required: true
+  },
+  itemTotal: {
+    type: Number,
+    required: true
+  },
+  cutUpFee: {
+    type: Number,
+    default: 0
+  }
+});
+
+const orderSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true
+  },
+  phone: {
+    type: String,
+    required: true
+  },
+  email: {
+    type: String,
+    required: true
+  },
+  // Array of order items
+  items: [orderItemSchema],
   specialInstructions: {
     type: String,
     default: ''
@@ -62,15 +82,12 @@ const orderSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
-  total: {
-    type: Number,
-    required: true
-  },
+  // Order totals
   subtotal: {
     type: Number,
     required: true
   },
-  cutUpFee: {
+  totalCutUpFee: {
     type: Number,
     default: 0
   },
@@ -81,6 +98,10 @@ const orderSchema = new mongoose.Schema({
   distance: {
     type: Number,
     default: 0
+  },
+  total: {
+    type: Number,
+    required: true
   },
   deliveryStatus: {
     type: String,
